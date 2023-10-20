@@ -9,6 +9,13 @@ Setup:
 1. Download the Stable release chromedriver binary for your OS here: https://googlechromelabs.github.io/chrome-for-testing/
 2. Unzip in the auto-trader directory and rename the unzipped directory to 'chromedriver'
 3. Update the CHROME_DRIVER_DIRECTORY constant to the path to the chrome executable file
+
+Tips:
+1. Run this locally to avoid accidentally committing passwords: 'git update-index --assume-unchanged robinhood-logins.json'
+
+TODOs:
+1. Update this to not use Selenium because Robinhood can detect that you're a bot and then force you to pass CAPTCHA
+   Also see if we can still use Selenium but avoid detection: https://stackoverflow.com/questions/53039551/selenium-webdriver-modifying-navigator-webdriver-flag-to-prevent-selenium-detec/53040904#53040904
 '''
 
 # constants
@@ -21,6 +28,8 @@ def read_command_line():
 	if (command_line_length != 7):
 		raise ValueError(f'command line arguments length is {command_line_length}, but expects a length of 7')
 
+	# TODO: extract this to a separate function for each value and add validation
+
 	command_key_index = command_line_arguments.index('--command')
 	command = command_line_arguments[command_key_index + 1]
 	ticker_key_index = command_line_arguments.index('--ticker')
@@ -30,6 +39,8 @@ def read_command_line():
 
 	return command, ticker, quantity
 
+# TODO: maybe make this a general config file instead of just logins
+# TODO: add support for other brokerage websites
 def read_logins():
 	logins_json = {}
 	with open(ROBINHOOD_LOGINS_FILE) as robinhood_logins_file:
@@ -49,6 +60,7 @@ def main():
 	for login in logins:
 		driver.get('https://robinhood.com/login')
 		time.sleep(5)
+		# TODO: extract this to a separate function
 		email_text_box_element = driver.find_element(by=By.NAME, value='username')
 		email_text_box_element.send_keys(login['email'])
 		password_text_box_element = driver.find_element(by=By.ID, value='current-password')
@@ -58,7 +70,7 @@ def main():
 		login_button_element.click()
 		time.sleep(1000)
 	
-	# driver.quit()
+	driver.quit()
 
 if __name__ == '__main__':
 	main()
